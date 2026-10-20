@@ -1,10 +1,12 @@
+name: wayfinding-map-builder
+
 services:
   wayfinding-map-builder:
     build: .
     image: wayfinding-map-builder:latest
     container_name: wayfinding-map-builder
     ports:
-      # Only this computer: http://localhost:8088
-      # To expose it on the local network, change to "8088:80"
+      # Current setting: reachable only from this computer (http://localhost:8088).
+      # To expose it on the local network, remove the "127.0.0.1:" prefix, i.e. use "8088:80".
       - "127.0.0.1:8088:80"
     restart: unless-stopped

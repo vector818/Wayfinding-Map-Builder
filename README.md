@@ -32,13 +32,15 @@ docker compose down
 
 - **Different port:** in `docker-compose.yml`, change `127.0.0.1:8088:80` to e.g. `127.0.0.1:9000:80` and re-run `docker compose up -d --build`.
 - **Exposing on the local network:** change `127.0.0.1:8088:80` to `8088:80`. The tool is then reachable at `http://<hostname-or-IP-of-this-machine>:8088`.
-- **After changing `site/index.html`:** run `docker compose up -d --build` (the file is copied into the image at build time).
+- **After changing anything in `site/`:** run `docker compose up -d --build` (the files are copied into the image at build time). If the old version is still served, rebuild without cache (`docker compose build --no-cache`, then `docker compose up -d --force-recreate`) and hard-refresh the page (Ctrl+F5).
 - **Without Docker:** you can also just open `site/index.html` directly. It works the same, except that the OpenStreetMap.org base map is unavailable in that case (OpenStreetMap Deutschland, Humanitarian and OSM France remain).
 - **Internet access is required:** the base map, address search (Nominatim), fonts and the Leaflet library are loaded from the network.
 
 ## Where maps are stored
 
-Nothing is sent to a server. Your drawing is saved automatically in the browser (localStorage), separately for each page origin: the version served from `localhost:8088` does not see what you drew in a file opened from disk. To move or archive maps, use the **Save project** / **Open project** buttons (a `.json` file).
+Nothing is sent to a server. Your drawing is saved automatically in the browser (localStorage), and the next visit reopens the last address you looked up. On the very first start the tool looks up a default address (Palace of Culture and Science, Warsaw).
+
+Storage is separate for each page origin, i.e. each distinct address and port. `localhost:8088`, `127.0.0.1:8088`, `localhost:9000`, `http://<hostname>:8088` and a file opened from disk all have their own, independent saved maps. If your maps seem to be missing, check that you are using the same address as before. To move or archive maps, use the **Save project** / **Open project** buttons (a `.json` file).
 
 ## Troubleshooting
 
