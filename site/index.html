@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wayfinding Map Builder</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<aside id="panel">
+  <header class="brand">
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <rect x="1" y="1" width="32" height="32" rx="7" fill="#1F2A44"/>
+      <path d="M7 25 L13 19 L17 22 L24 12" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="0.1 4.4"/>
+      <path d="M24 6.5c-2.8 0-4.6 2-4.6 4.4 0 3.2 4.6 7.6 4.6 7.6s4.6-4.4 4.6-7.6c0-2.4-1.8-4.4-4.6-4.4z" fill="#D63C27" stroke="#fff" stroke-width="1.4"/>
+    </svg>
+    <div>
+      <h1 data-i18n="app.name">Wayfinding Map Builder</h1>
+      <p data-i18n="app.tagline"></p>
+    </div>
+    <div class="lang" role="group" aria-label="Język / Language">
+      <button type="button" data-lang="pl" aria-pressed="false">PL</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </header>
+
+  <section aria-labelledby="h-address">
+    <h2 id="h-address"><span class="num">1</span><span data-i18n="h.address"></span></h2>
+    <form class="search" id="searchForm">
+      <input id="q" type="search" autocomplete="off" data-i18n-ph="q.ph" data-i18n-aria="q.aria">
+      <button class="btn-primary" type="submit" data-i18n="btn.search"></button>
+    </form>
+    <div class="results" id="results"></div>
+    <p class="status" id="geoStatus"></p>
+    <div class="row">
+      <button id="btnEntrances" type="button" data-i18n="btn.entrances"></button>
+      <button id="btnRecenter" type="button" data-i18n="btn.recenter"></button>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-draw">
+    <h2 id="h-draw"><span class="num">2</span><span data-i18n="h.draw"></span></h2>
+    <div class="tools" id="tools"></div>
+    <p class="hint" id="hint"></p>
+    <div class="row">
+      <label for="nextNo" style="flex:0 0 auto" data-i18n="nextNo"></label>
+      <input id="nextNo" type="number" min="0" step="1" style="max-width:80px">
+    </div>
+    <div class="selbox" id="selBox" hidden>
+      <div class="selhead"><canvas id="selIcon" width="80" height="52"></canvas><select id="selType" data-i18n-aria="selType.aria"></select></div>
+      <div class="field">
+        <label for="selText" id="selTextLabel"></label>
+        <input id="selText" type="text">
+      </div>
+      <div class="row">
+        <button id="selReverse" type="button" data-i18n="btn.reverse"></button>
+        <button id="selDelete" type="button" class="danger" data-i18n="btn.delete"></button>
+      </div>
+    </div>
+    <div class="row">
+      <button id="btnUndo" type="button" data-i18n-html="btn.undo"></button>
+      <button id="btnClear" type="button" class="danger" data-i18n="btn.clear"></button>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-sheet">
+    <h2 id="h-sheet"><span class="num">3</span><span data-i18n="h.sheet"></span></h2>
+    <div class="field"><label for="title" data-i18n="f.title"></label><input id="title" type="text"></div>
+    <div class="field"><label for="subtitle" data-i18n="f.subtitle"></label><input id="subtitle" type="text"></div>
+    <div class="field"><label for="notes" data-i18n="f.notes"></label><textarea id="notes" data-i18n-ph="f.notes.ph"></textarea></div>
+    <div class="grid2">
+      <div class="field"><label for="format" data-i18n="f.format"></label><select id="format"></select></div>
+      <div class="field"><label for="base" data-i18n="f.base"></label><select id="base"></select></div>
+    </div>
+    <p class="status" id="baseStatus"></p>
+    <div class="field"><label for="tone" data-i18n="f.tone"></label>
+      <select id="tone">
+        <option value="full" data-i18n="tone.full"></option>
+        <option value="soft" data-i18n="tone.soft"></option>
+        <option value="gray" data-i18n="tone.gray"></option>
+      </select>
+    </div>
+    <fieldset>
+      <legend data-i18n="ov.legend"></legend>
+      <label class="check"><input type="checkbox" id="ovOn"> <span data-i18n="f.show"></span></label>
+      <div class="grid2">
+        <div class="field"><label for="ovCorner" data-i18n="f.corner"></label><select id="ovCorner" class="corner"></select></div>
+        <div class="field"><label for="ovSize" data-i18n="f.size"></label><select id="ovSize" class="size"></select></div>
+      </div>
+      <div class="field"><label for="ovRect" data-i18n="ov.rect"></label><select id="ovRect"></select></div>
+      <p class="status" id="ovStatus"></p>
+    </fieldset>
+    <fieldset>
+      <legend data-i18n="dt.legend"></legend>
+      <label class="check"><input type="checkbox" id="dtOn"> <span data-i18n="dt.show"></span></label>
+      <div class="grid2">
+        <div class="field"><label for="dtCorner" data-i18n="f.corner"></label><select id="dtCorner" class="corner"></select></div>
+        <div class="field"><label for="dtSize" data-i18n="f.size"></label><select id="dtSize" class="size"></select></div>
+      </div>
+      <p class="muted-note" data-i18n="dt.note"></p>
+    </fieldset>
+    <fieldset>
+      <legend data-i18n="lg.legend"></legend>
+      <div class="grid2">
+        <label class="check"><input type="checkbox" id="lgOn"> <span data-i18n="f.show"></span></label>
+        <select id="lgCorner" class="corner" data-i18n-aria="lg.corner"></select>
+      </div>
+    </fieldset>
+  </section>
+
+  <section aria-labelledby="h-legend">
+    <h2 id="h-legend"><span class="num">4</span><span data-i18n="h.legend"></span></h2>
+    <div id="legendEdit" style="display:grid;gap:6px"></div>
+    <p class="muted-note" id="legendEmpty" data-i18n="legend.empty"></p>
+  </section>
+
+  <section aria-labelledby="h-export">
+    <h2 id="h-export"><span class="num">5</span><span data-i18n="h.export"></span></h2>
+    <div class="row">
+      <button id="btnPng" class="btn-primary" type="button" data-i18n="btn.png"></button>
+      <select id="pngScale" style="flex:0 0 130px" data-i18n-aria="png.scale">
+        <option value="2" data-i18n="png.2"></option>
+        <option value="3" data-i18n="png.3"></option>
+        <option value="1" data-i18n="png.1"></option>
+      </select>
+    </div>
+    <div class="row">
+      <button id="btnCopy" type="button" data-i18n="btn.copy"></button>
+      <button id="btnPrint" type="button" data-i18n="btn.print"></button>
+    </div>
+    <div class="row">
+      <button id="btnSave" type="button" data-i18n="btn.save"></button>
+      <button id="btnLoad" type="button" data-i18n="btn.load"></button>
+      <input type="file" id="fileLoad" accept=".json,application/json" hidden>
+    </div>
+    <p class="status" id="exportStatus"></p>
+  </section>
+
+  <details class="help">
+    <summary data-i18n="help.summary"></summary>
+    <ul data-i18n-html="help.list"></ul>
+  </details>
+</aside>
+
+<main id="stage">
+  <div id="sheet">
+    <div id="mapMain" class="map"></div>
+    <div id="mapOverview" class="map inset"></div>
+    <div id="mapDetail" class="map inset"></div>
+    <canvas id="sheetCanvas"></canvas>
+    <div id="labelEditor" hidden>
+      <input id="labelInput" type="text" autocomplete="off" data-i18n-aria="editor.aria">
+      <small data-i18n="editor.hint"></small>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/draw.js"></script>
+<script src="js/map.js"></script>
+<script src="js/sheet.js"></script>
+<script src="js/interaction.js"></script>
+<script src="js/panel.js"></script>
+<script src="js/geo.js"></script>
+<script src="js/export.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
